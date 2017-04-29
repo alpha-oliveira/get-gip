@@ -23,57 +23,59 @@ request(initial, (err, response, body) => {
     // variable to control the loop
     let delta = 100
 
-    function get(url,output) {
+    function get(url, output) {
         return new Promise(function (resolve, reject) {
-        scrape(url, {
+            scrape(url, {
 
-            date: "#gip_show_text h3",
+                date: "#gip_show_text h3",
 
-            content: "#gip_show_text"
-        }, (err, data) => {
-           // console.log('data nao truncada---', data.date);
-            //  date = data.date.split(' ')[0];
-            // console.log('data truncada---',date);
-            output.date = new Date(data.date);
-            //console.log('data js', date);
-           output. content = data.content.replace(/(\\n|\\t|\\r)/g, ' ');
+                content: "#gip_show_text"
+            }, (err, data) => {
+                // console.log('data nao truncada---', data.date);
+                //  date = data.date.split(' ')[0];
+                // console.log('data truncada---',date);
+                output.date = new Date(data.date);
+                //console.log('data js', date);
+                output.content = data.content.replace(/(\\n|\\t|\\r)/g, ' ');
 
-            fs.appendFile('results.html', output.content, function (err) {
-                if (err) reject (err);
-                resolve(output.date);
+                fs.appendFile('results.html', output.content, function (err) {
+                    if (err) reject(err);
+                    resolve(output.date);
+                });
+
             });
-           
+
         });
-        
-    });
-}
+    }
 
-    do {
-        let url = initial + path + id;
-        let output = {
-            date : ''
-            , content : ''
-        };
 
-      get(url,output).then( function(response){
-       // distance in days
+    let url = initial + path + id;
+    let output = {
+        date: ''
+        , content: ''
+    };
+
+    get(url, output).then(function (response) {
+        // distance in days
         delta = (now - response) / (1000 * 3600 * 24);
-        console.log('delta-->', delta);
         id--;
-        console.log('id-->', id);
-      }, function (error){
-
-          console.log(error);
-      });
-
-        console.log('out delta-->', delta);
-        console.log('out id-->', id);
-        console.log(delta < difference);
-
-
-    } while (delta < difference);
-
-
+        if ((delta < difference)) {
+            let url = initial + path + id;
+            let output = {
+                date: ''
+                , content: ''
+            };
+            get(url, output).then(function (response) {
+                delta = (now - response) / (1000 * 3600 * 24);
+                id--;
+            }, function (error) {
+                console.log(error);
+            });
+        }
+    }
+        , function (error) {
+            console.log(error);
+        });
 
 });
 
