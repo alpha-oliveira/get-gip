@@ -6,8 +6,8 @@ const request = require('request')
 const initial = 'http://gip.aaum.pt/'
     , now = new Date();
 
-// depth of days extracted
-const difference = 7;
+// depth of days extracted inserted as an argument
+const difference = process.argv[2];;
 //get the last offer
 let path = 'index.php/gip/show/id/'
     , id = '';
@@ -31,11 +31,8 @@ request(initial, (err, response, body) => {
 
                 content: "#gip_show_text"
             }, (err, data) => {
-                // console.log('data nao truncada---', data.date);
-                //  date = data.date.split(' ')[0];
-                // console.log('data truncada---',date);
                 output.date = new Date(data.date);
-                //console.log('data js', date);
+
                 output.content = data.content.replace(/(\\n|\\t|\\r)/g, ' ');
 
                 fs.appendFile('results.html', output.content, function (err) {
@@ -54,28 +51,23 @@ request(initial, (err, response, body) => {
         date: ''
         , content: ''
     };
-
+( function recursive () { //iife works like a do-while loop
     get(url, output).then(function (response) {
         // distance in days
         delta = (now - response) / (1000 * 3600 * 24);
         id--;
+
         if ((delta < difference)) {
-            let url = initial + path + id;
-            let output = {
-                date: ''
-                , content: ''
-            };
-            get(url, output).then(function (response) {
-                delta = (now - response) / (1000 * 3600 * 24);
-                id--;
-            }, function (error) {
-                console.log(error);
-            });
+            url = initial + path + id;
+            recursive();
         }
-    }
+  
+  }
         , function (error) {
             console.log(error);
         });
+
+})(); // recursive iife
 
 });
 
@@ -83,8 +75,9 @@ request(initial, (err, response, body) => {
 
 
 
+
 function scrape(url, data, cb) {
-    console.log('debug scrape url', url);
+    
     // 1. Create the request
     request(url, (err, response, body) => {
         if (err) { return cb(err); }
